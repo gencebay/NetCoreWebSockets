@@ -4,7 +4,6 @@ using Microsoft.Extensions.Caching.Memory;
 using NetCoreStack.WebSockets;
 using NetStandard.Contracts;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -14,13 +13,10 @@ namespace Discovery.Hosting.Controllers
     public class DiscoveryController : Controller
     {
         private readonly IConnectionManager _connectionManager;
-        private readonly IMemoryCache _memoryCache;
 
-        public DiscoveryController(IConnectionManager connectionManager,
-            IMemoryCache memoryCache)
+        public DiscoveryController(IConnectionManager connectionManager)
         {
             _connectionManager = connectionManager;
-            _memoryCache = memoryCache;
         }
 
         [HttpPost(nameof(SendAsync))]
@@ -33,12 +29,18 @@ namespace Discovery.Hosting.Controllers
             return Ok();
         }
 
-        [HttpPost(nameof(BroadcastBinaryAsync))]
-        public async Task<IActionResult> BroadcastBinaryAsync([FromBody]SimpleCacheItem model)
+        [HttpGet(nameof(CacheReady))]
+        public async Task CacheReady()
         {
-            var cacheItemList = _memoryCache.Get<List<SimpleCacheItem>>(nameof(SimpleCacheItem));
-            
-            return Ok();
+            var webSocketContext = new WebSocketMessageContext {
+                Command = WebSocketCommands.DataSend,
+                Header = new RouteValueDictionary(new { CacheReady = Globals.CacheReady }),
+                Value = new Context
+                {
+                    Keys = new string[] { nameof(SimpleCacheItem) }
+                }};
+
+            await _connectionManager.BroadcastAsync(webSocketContext);
         }
 
         [HttpGet(nameof(GetConnections))]

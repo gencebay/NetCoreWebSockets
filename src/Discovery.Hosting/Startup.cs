@@ -26,7 +26,6 @@ namespace Discovery.Hosting
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMemoryCache();
-
             services.AddSwaggerGen(c =>
             {
                 c.SingleApiVersion(new Info
@@ -44,7 +43,7 @@ namespace Discovery.Hosting
                 options.RegisterInvocator<ServerWebSocketCommandInvocator>(WebSocketCommands.All);
             });
 
-            services.AddMvc();   
+            services.AddMvc();
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)

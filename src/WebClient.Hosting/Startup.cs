@@ -29,30 +29,21 @@ namespace WebClient.Hosting
             // Client WebSocket - Connector orchestration
             services.AddProxyWebSockets(options => {
                 options.ConnectorName = $"TestWebApp-{Environment.MachineName}";
-                options.WebSocketHostAddress = "localhost:7803"; // Discover.Hosting EndPoint
+                options.WebSocketHostAddress = "localhost:5916"; // Discover.Hosting EndPoint
                 options.RegisterInvocator<ProxyWebSocketCommandInvocator>(WebSocketCommands.All);
             });
 
             services.AddMvc();
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
-            loggerFactory.AddConsole(Configuration.GetSection("Logging"));
-            loggerFactory.AddDebug();
-
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-                app.UseBrowserLink();
-            }
-            else
-            {
-                app.UseExceptionHandler("/Home/Error");
-            }
-
             app.UseStaticFiles();
+
+            // Proxy (Domain App) Client WebSocket
+            app.UseProxyWebSockets();
+
+            app.UseMiddleware<AcceptanceMiddleware>();
 
             app.UseMvc(routes =>
             {
